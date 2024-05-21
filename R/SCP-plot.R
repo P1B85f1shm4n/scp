@@ -8766,15 +8766,27 @@ GroupHeatmap <- function(srt, features = NULL, group.by = NULL, split.by = NULL,
       right_annotation <- NULL
     }
     if (isTRUE(add_violin)) {
-      vlnplots <- FeatureStatPlot(srt,
-        assay = assay, slot = "data", flip = flip,
-        stat.by = rownames(mat_list[[cell_group]]),
-        cells = names(cell_groups[[cell_group]]),
-        group.by = cell_group, split.by = split.by,
-        palette = fill_palette, palcolor = fill_palcolor,
-        fill.by = fill.by, same.y.lims = TRUE,
-        individual = TRUE, combine = FALSE
-      )
+      vlnplots <- list()
+      feature_names <- rownames(mat_list[[cell_group]])
+      for (i in seq_along(feature_names)) {
+        if (length(fill_palcolor)>0) {
+          color_index <- i %% length(fill_palcolor) # This uses modulo to cycle through colors
+          color_index <- if (color_index == 0) length(fill_palcolor) else color_index # Adjust if modulo result is 0
+          current_color <- fill_palcolor[color_index]
+        }
+        feature <- feature_names[i]
+        vlnplot <- FeatureStatPlot(srt,
+          assay = assay, slot = "data", flip = flip,
+          stat.by = feature,
+          cells = names(cell_groups[[cell_group]]),
+          group.by = cell_group, split.by = split.by,
+          palette = fill_palette, palcolor = current_color,
+          fill.by = fill.by, same.y.lims = TRUE,
+          individual = TRUE, combine = FALSE
+        )
+        vlnplots <- c(vlnplots, vlnplot)
+      }
+
       lgd[["ht"]] <- NULL
       # legend <- get_legend(vlnplots[[1]])
       # funbody <- paste0(
